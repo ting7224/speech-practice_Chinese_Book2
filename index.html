@@ -10,7 +10,7 @@
     .container { max-width: 980px; margin:0 auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,.08); }
     h1 { text-align:center; margin-top:0; color:#333; }
     h2 { margin-top:28px; }
-    select, button, input[type="text"] { padding:8px 12px; margin:5px; font-size:16px; }
+    button, input[type="text"] { padding:8px 12px; margin:5px; font-size:16px; }
     .sentence { font-size:20px; text-align:center; margin:20px 0; padding:10px; background:#f1f1f1; border-radius:8px; }
     #result, #diff, #quizDiff, .box { padding:10px; margin-top:10px; background:#f9f9f9; border:1px solid #ddd; min-height:30px; border-radius:8px; }
     .row { margin:6px 0; }
@@ -31,12 +31,16 @@
     .list { display:flex; flex-wrap:wrap; }
     .two { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .wide { width:100%; }
+    .checks { max-height: 240px; overflow:auto; border:1px solid #e5e7eb; padding:8px; border-radius:8px; background:#fff; }
+    .check-item { display:flex; align-items:center; gap:8px; padding:4px 0; }
+    .muted-small { color:#9ca3af; font-size:12px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>中文口語即時比對（內建詞表版）</h1>
 
+    <!-- 基本資訊 -->
     <div class="box two">
       <div>
         <label class="label">姓名：</label>
@@ -48,28 +52,26 @@
       </div>
     </div>
 
+    <!-- 課次選擇（改為 Checkbox 可複選） -->
     <h2>選擇課次（可複選）</h2>
     <div class="box">
       <div class="actions">
-        <select id="lessonMulti" multiple size="8" class="wide"></select>
-        <div>
-          <button onclick="selectAllLessons()">全選</button>
-          <button onclick="clearLessons()">清空</button>
-        </div>
+        <button onclick="checkAllLessons()">全選</button>
+        <button onclick="uncheckAllLessons()">清空</button>
       </div>
-      <div class="note">提示：按住 Ctrl/⌘ 或拖曳可多選；或使用「全選／清空」。</div>
-      <div class="note">課次與句數：</div>
-      <div id="lessonStats" class="list"></div>
+      <div id="lessonChecks" class="checks"></div>
+      <div class="muted-small">已選課次：<span id="selCount">0</span>；可用句子：<span id="sentCount">0</span></div>
     </div>
 
     <div class="flex">
+      <!-- 練習 -->
       <div class="col">
-        <h2>練習</h2>
+        <h2>練習（抽選「例句」）</h2>
         <div class="actions">
           <button onclick="newSentence()">換一句</button>
         </div>
 
-        <div class="sentence" id="sentence">請按「換一句」生成句子（需先選課）</div>
+        <div class="sentence" id="sentence">請按「換一句」生成句子（需先勾課次）</div>
 
         <div class="actions">
           <button id="btnStart" onclick="startRecognition()">🎙️ 開始錄音</button>
@@ -92,8 +94,9 @@
         </div>
       </div>
 
+      <!-- 測驗 -->
       <div class="col">
-        <h2>測驗（從所選課次抽題，共 3 題）</h2>
+        <h2>測驗（從所選課次的例句抽題，共 3 題）</h2>
         <div class="box">
           <div class="muted">狀態：<span id="quizState">未開始</span></div>
           <div class="sentence" id="quizSentence">（開始後顯示本題句子）</div>
@@ -137,6 +140,7 @@
   </div>
 
 <script>
+  // 只含「例句」的課次句庫（已過濾）
   const lessons = {
   "1": [
     "走",
@@ -848,6 +852,44 @@
 
   function nowString(){ const t=new Date(),p=n=>String(n).padStart(2,'0'); return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())}`; }
   function normalize(str){ if(!str) return ""; return str.replace(/[\s\p{P}\p{S}]/gu,'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0)); }
+
+  // 動態建立 Checkbox UI
+  function renderLessonChecks(){
+    const box=document.getElementById("lessonChecks");
+    box.innerHTML="";
+    Object.entries(lessons).forEach(([k,arr])=>{
+      const id="chk_"+btoa(encodeURIComponent(k)).replace(/=+/g,"");
+      const div=document.createElement("div");
+      div.className="check-item";
+      div.innerHTML=`<input type="checkbox" id="${id}" name="lessonChk" value="${k}">
+                     <label for="${id}">${k}（${(arr||[]).length} 句）</label>`;
+      box.appendChild(div);
+    });
+    updateCounts();
+  }
+  function getCheckedLessons(){
+    return Array.from(document.querySelectorAll('input[name="lessonChk"]:checked')).map(el=>el.value);
+  }
+  function checkAllLessons(){
+    document.querySelectorAll('input[name="lessonChk"]').forEach(el=>el.checked=true);
+    updateCounts();
+  }
+  function uncheckAllLessons(){
+    document.querySelectorAll('input[name="lessonChk"]').forEach(el=>el.checked=false);
+    updateCounts();
+  }
+  function updateCounts(){
+    const keys=getCheckedLessons();
+    const pool=[]; keys.forEach(k=>{ (lessons[k]||[]).forEach(s=>pool.push(s)); });
+    document.getElementById("selCount").innerText = keys.length;
+    document.getElementById("sentCount").innerText = pool.length;
+  }
+  document.addEventListener("change", (e)=>{
+    if(e.target && e.target.name==="lessonChk"){ updateCounts(); }
+  });
+  renderLessonChecks();
+
+  // 比對/顯示工具
   function diffAlign(aRaw,bRaw){
     const a=normalize(aRaw), b=normalize(bRaw), n=a.length, m=b.length;
     const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
@@ -894,36 +936,19 @@
     return { zh:"加油！先聽示範兩遍，逐字跟讀，確認每個字都有發到位。", en:"Keep at it! Listen twice, echo word-by-word, and ensure each syllable lands." };
   }
 
-  function refreshLessonOptions(){
-    const sel=document.getElementById("lessonMulti");
-    sel.innerHTML="";
-    Object.keys(lessons).forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=`${k}（${lessons[k].length} 句）`; sel.appendChild(o); });
-  }
-  function renderLessonStats(){
-    const box=document.getElementById("lessonStats"); box.innerHTML="";
-    Object.entries(lessons).forEach(([k,arr])=>{ const span=document.createElement("span"); span.className="pill"; span.textContent=`${k}：${(arr||[]).length} 句`; box.appendChild(span); });
-  }
-  refreshLessonOptions(); 
-  renderLessonStats();
-
-  function getSelectedLessons(){
-    const sel=document.getElementById("lessonMulti"); return Array.from(sel.selectedOptions).map(o=>o.value);
-  }
-  function selectAllLessons(){
-    const sel=document.getElementById("lessonMulti"); Array.from(sel.options).forEach(o=>o.selected=true);
-  }
-  function clearLessons(){
-    const sel=document.getElementById("lessonMulti"); Array.from(sel.options).forEach(o=>o.selected=false);
+  // 產生題庫 Pool（只含勾選課次的例句）
+  function poolFromChecked(){
+    const keys=getCheckedLessons();
+    const pool=[]; keys.forEach(k=>{ (lessons[k]||[]).forEach(s=>pool.push([k,s])); });
+    return pool;
   }
 
+  // 練習流程
   let currentSentence=""; let rec=null;
   const practiceRecords=[];
-  function poolFromSelected(){
-    const keys=getSelectedLessons(); const pool=[]; keys.forEach(k=>{ (lessons[k]||[]).forEach(s=>pool.push([k,s])); }); return pool;
-  }
   function newSentence(){
-    const pool=poolFromSelected(); if(pool.length===0){ alert("請先選擇至少一個課次。"); return; }
-    const [key, s]=pool[Math.floor(Math.random()*pool.length)];
+    const pool=poolFromChecked(); if(pool.length===0){ alert("請先勾選至少一個課次。"); return; }
+    const [key,s]=pool[Math.floor(Math.random()*pool.length)];
     currentSentence=s; document.getElementById("sentence").innerText=`（${key}）${s}`;
     document.getElementById("result").innerText="尚無結果";
     document.getElementById("diff").innerText="尚無結果";
@@ -934,11 +959,10 @@
     if(!currentSentence){ alert("請先生成句子！"); return; }
     const u=new SpeechSynthesisUtterance(currentSentence); u.lang="zh-TW"; speechSynthesis.cancel(); speechSynthesis.speak(u);
   }
-
   function startRecognition(){
     if(!('webkitSpeechRecognition'in window)){ alert("此瀏覽器不支援語音辨識，請使用 Chrome。"); return; }
     if(!currentSentence){ alert("請先按「換一句」生成句子！"); return; }
-    rec=new webkitSpeechRecognition(); rec.lang="zh-TW"; rec.continuous=false; rec.interimResults=false; 
+    rec=new webkitSpeechRecognition(); rec.lang="zh-TW"; rec.continuous=false; rec.interimResults=false;
     rec.onresult=function(e){
       const heard=e.results[0][0].transcript||"";
       document.getElementById("result").innerText=heard;
@@ -962,7 +986,6 @@
     document.getElementById("btnStart").disabled=recording;
     document.getElementById("btnStop").disabled=!recording;
   }
-
   function downloadTxt(){
     if(practiceRecords.length===0){ alert("尚無成績可下載。請先完成一次錄音練習。"); return; }
     const lines=["【中文口語即時比對｜練習成績單（內建版）】",`匯出時間：${nowString()}`,"","姓名\t學號\t時間\t例句\t辨識結果\t正確率(%)\t建議與回饋"];
@@ -972,11 +995,12 @@
     const a=document.createElement("a"); a.href=url; a.download="practice_results.txt"; a.click(); URL.revokeObjectURL(url);
   }
 
+  // 測驗流程
   let quizQueue=[], quizIndex=-1, quizHeard="", quizRec=null;
   const quizRecords=[];
   function setQuizState(t){ document.getElementById("quizState").innerText=t; }
   function startQuiz(){
-    const pool=poolFromSelected().map(([k,s])=>s); if(pool.length<1){ alert("請先選擇至少一個課次。"); return; }
+    const pool=poolFromChecked().map(([k,s])=>s); if(pool.length<1){ alert("請先勾選至少一個課次。"); return; }
     quizQueue=[]; const temp=[...pool];
     for(let i=0;i<3;i++){ if(temp.length===0) break; const idx=Math.floor(Math.random()*temp.length); quizQueue.push(temp.splice(idx,1)[0]); }
     if(quizQueue.length<3){ while(quizQueue.length<3 && pool.length>0) quizQueue.push(pool[Math.floor(Math.random()*pool.length)]); }
