@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>中文口語即時比對（內建詞表版）</title>
+  <title>中文口語發音練習（Book2_A2）</title>
   <style>
     body { font-family: "Microsoft JhengHei", Arial, sans-serif; background:#fafafa; margin:0; padding:20px; }
     .container { max-width: 980px; margin:0 auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,.08); }
@@ -38,7 +38,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>中文口語即時比對（內建詞表版）</h1>
+    <h1>中文口語發音練習（Book2_A2）</h1>
 
     <div class="box two">
       <div>
@@ -98,11 +98,11 @@
           <div class="sentence" id="quizSentence">（開始後顯示本題句子）</div>
 
           <div class="actions">
-            <button onclick="startQuiz()">開始測驗（3題）</button>
+            <button onclick="startQuiz()">1開始測驗（3題）</button>
             <button onclick="quizPlay()">🔊 示範發音</button>
-            <button id="btnQuizStart" onclick="quizRecord()">🎙️ 開始錄音</button>
+            <button id="btnQuizStart" onclick="quizRecord()">🎙️ 2開始錄音</button>
             <button id="btnQuizStop" onclick="quizStop()" disabled>■ 結束錄音</button>
-            <button onclick="quizSubmit()">提交本題</button>
+            <button onclick="quizSubmit()">3送出</button>
           </div>
 
           <div class="row"><span class="label">本題辨識：</span><span id="quizHeard">—</span></div>
@@ -115,8 +115,8 @@
           <div class="row">總評（中 / EN）：<span id="quizFeedback" class="em">—</span></div>
           <div class="row">姓名 / 學號：<span id="quizWho" class="em">—</span></div>
           <div class="actions">
-            <button onclick="downloadQuizTXT()">⬇️ 下載本次（TXT）</button>
-            <button onclick="downloadQuizCSV()">⬇️ 下載本次（CSV）</button>
+            <button onclick="downloadQuizTXT()">⬇️ 下載成績（TXT）</button>
+            <button onclick="downloadQuizCSV()">⬇️ 下載成績（CSV）</button>
           </div>
 
           <h4>辨識比對表（3題）</h4>
@@ -984,7 +984,7 @@
   }
   function downloadTxt(){
     if(practiceRecords.length===0){ alert("尚無成績可下載。請先完成一次錄音練習。"); return; }
-    const lines=["【中文口語即時比對｜練習成績單（內建版）】",`匯出時間：${nowString()}`,"","姓名\t學號\t時間\t例句\t辨識結果\t正確率(%)\t建議與回饋"];
+    const lines=["【中文口語發音練習（Book2_A2）｜成績單】",`匯出時間：${nowString()}`,"","姓名\t學號\t時間\t例句\t辨識結果\t正確率(%)\t建議與回饋"];
     const clean=s=>(s||"").replace(/\r?\n/g," ").trim();
     practiceRecords.forEach(r=>lines.push(`${clean(r.name)}\t${clean(r.sid)}\t${r.time}\t${clean(r.sentence)}\t${clean(r.recognized)}\t${r.accuracy}\t${clean(r.feedback)}`));
     const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/plain;charset=utf-8;"}), url=URL.createObjectURL(blob);
@@ -1049,7 +1049,7 @@
     const total=Math.round(quizRecords.reduce((s,r)=>s+r.pct,0)/quizRecords.length), fb=quizOverallFeedback(total);
     const name=(document.getElementById("studentName").value||"").trim();
     const sid=(document.getElementById("studentId").value||"").trim();
-    const lines=["【中文口語即時比對｜本次測驗（內建版）】",`匯出時間：${nowString()}`,`姓名：${name}`,`學號：${sid}`,`總正確率：${total}%`,`總評（中文）：${fb.zh}`,`Overall Feedback (EN): ${fb.en}`,"","題次\t例句\t辨識結果\t正確率(%)"];
+    const lines=["【中文口語發音練習（Book2_A2）｜成績單】",`匯出時間：${nowString()}`,`姓名：${name}`,`學號：${sid}`,`總正確率：${total}%`,`總評（中文）：${fb.zh}`,`Overall Feedback (EN): ${fb.en}`,"","題次\t例句\t辨識結果\t正確率(%)"];
     const clean=s=>(s||"").replace(/\r?\n/g," ").trim();
     quizRecords.forEach(r=>lines.push(`${r.idx}\t${clean(r.sentence)}\t${clean(r.recognized)}\t${r.pct}`));
     const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/plain;charset=utf-8;"}), url=URL.createObjectURL(blob);
