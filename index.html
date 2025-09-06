@@ -37,7 +37,6 @@
   <div class="container">
     <h1>中文口語即時比對（內建詞表版）</h1>
 
-    <!-- 基本資訊 -->
     <div class="box two">
       <div>
         <label class="label">姓名：</label>
@@ -49,7 +48,6 @@
       </div>
     </div>
 
-    <!-- 課次選擇（可複選） -->
     <h2>選擇課次（可複選）</h2>
     <div class="box">
       <div class="actions">
@@ -65,7 +63,6 @@
     </div>
 
     <div class="flex">
-      <!-- 練習 -->
       <div class="col">
         <h2>練習</h2>
         <div class="actions">
@@ -95,7 +92,6 @@
         </div>
       </div>
 
-      <!-- 測驗 -->
       <div class="col">
         <h2>測驗（從所選課次抽題，共 3 題）</h2>
         <div class="box">
@@ -141,7 +137,6 @@
   </div>
 
 <script>
-  // ====== 內建課次句庫（由 Excel 轉入，已嵌入） ======
   const lessons = {
   "1": [
     "走",
@@ -851,7 +846,6 @@
   ]
 };
 
-  // ====== 共用：時間、正規化、比對 ======
   function nowString(){ const t=new Date(),p=n=>String(n).padStart(2,'0'); return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())}`; }
   function normalize(str){ if(!str) return ""; return str.replace(/[\s\p{P}\p{S}]/gu,'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0)); }
   function diffAlign(aRaw,bRaw){
@@ -900,7 +894,6 @@
     return { zh:"加油！先聽示範兩遍，逐字跟讀，確認每個字都有發到位。", en:"Keep at it! Listen twice, echo word-by-word, and ensure each syllable lands." };
   }
 
-  // ====== UI：課次多選與統計 ======
   function refreshLessonOptions(){
     const sel=document.getElementById("lessonMulti");
     sel.innerHTML="";
@@ -910,7 +903,8 @@
     const box=document.getElementById("lessonStats"); box.innerHTML="";
     Object.entries(lessons).forEach(([k,arr])=>{ const span=document.createElement("span"); span.className="pill"; span.textContent=`${k}：${(arr||[]).length} 句`; box.appendChild(span); });
   }
-  refreshLessonOptions(); renderLessonStats();
+  refreshLessonOptions(); 
+  renderLessonStats();
 
   function getSelectedLessons(){
     const sel=document.getElementById("lessonMulti"); return Array.from(sel.selectedOptions).map(o=>o.value);
@@ -922,7 +916,6 @@
     const sel=document.getElementById("lessonMulti"); Array.from(sel.options).forEach(o=>o.selected=false);
   }
 
-  // ====== 練習：開始/結束錄音按鈕 ======
   let currentSentence=""; let rec=null;
   const practiceRecords=[];
   function poolFromSelected(){
@@ -979,7 +972,6 @@
     const a=document.createElement("a"); a.href=url; a.download="practice_results.txt"; a.click(); URL.revokeObjectURL(url);
   }
 
-  // ====== 測驗（從所選課次抽 3 題） ======
   let quizQueue=[], quizIndex=-1, quizHeard="", quizRec=null;
   const quizRecords=[];
   function setQuizState(t){ document.getElementById("quizState").innerText=t; }
@@ -1049,7 +1041,7 @@
     const name=(document.getElementById("studentName").value||"").trim();
     const sid=(document.getElementById("studentId").value||"").trim();
     const rows=[["題次","例句","辨識結果","正確率(%)"].join(",")];
-    const esc=s=>'"'+String(s or "").replace(/"/g,'""')+'"';
+    const esc = s => '"' + String(s || "").replace(/"/g,'""') + '"';
     quizRecords.forEach(r=>rows.push([r.idx, esc(r.sentence), esc(r.recognized), r.pct].join(",")));
     rows.push(["", "", "", ""].join(","));
     rows.push(["姓名", name, "", ""].join(","));
