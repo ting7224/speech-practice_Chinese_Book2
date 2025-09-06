@@ -918,11 +918,11 @@
     return { html, pct };
   }
   function feedbackByScore(pct){
-    if (pct>=95) return {"太棒了！幾乎完全正確，維持清晰的咬字與穩定的語速。","Excellent! Nearly perfect accuracy—keep your articulation clear and pace steady."};
-    if (pct>=85) return {"很不錯！再注意個別字的收尾與連音，放慢一點更穩。","Great work! Watch final consonants and liaison; a slightly slower pace adds stability."};
-    if (pct>=70) return {"有進步！建議先跟著示範慢速朗讀，針對高光字多練幾次。","Good progress! Shadow the demo slowly and practice the highlighted characters."};
-    if (pct>=50) return {"別急，先分段朗讀並重複練習，再完整朗讀一次。","Don't rush—read in chunks, repeat, then attempt a full read."};
-    return {"加油！先聽示範兩遍，逐字跟讀，確認每個字都有發到位。","Keep at it! Listen twice, echo word-by-word, and ensure each syllable lands."};
+    if (pct>=95) return "太棒了！幾乎完全正確，維持清晰的咬字與穩定的語速。Excellent! Nearly perfect accuracy—keep your articulation clear and pace steady.";
+    if (pct>=85) return "很不錯！再注意個別字的收尾與連音，放慢一點更穩。Great work! Watch final consonants and liaison; a slightly slower pace adds stability.";
+    if (pct>=70) return "有進步！建議先跟著示範慢速朗讀，針對高光字多練幾次。Good progress! Shadow the demo slowly and practice the highlighted characters.";
+    if (pct>=50) return "別急，先分段朗讀並重複練習，再完整朗讀一次。Don't rush—read in chunks, repeat, then attempt a full read.";
+    return "加油！先聽示範兩遍，逐字跟讀，確認每個字都有發到位。Keep at it! Listen twice, echo word-by-word, and ensure each syllable lands.";
   }
   function quizOverallFeedback(totalPct){
     if (totalPct>=95) return { zh:"太棒了！幾乎完全正確，維持清晰的咬字與穩定的語速。", en:"Excellent! Nearly perfect accuracy—keep your articulation clear and pace steady." };
